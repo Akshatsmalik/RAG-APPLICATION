@@ -18,16 +18,14 @@ from langchain.chains import RetrievalQA
 from langchain_ollama.llms import OllamaLLM
 from langchain.schema import Document as LangchainDocument
 import torch
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_google_genai import ChatGoogleGenerativeAI
 
-GEMINI_API_KEY = os.getenv("gemini_api_key")
+# GEMINI_API_KEY = os.getenv("gemini_api_key")
 load_dotenv()
 
-# Configuration
 FAISS_INDEX_DIR = "faiss_index"
 RESPONSE_TIMEOUT = 30
 
-# Performance monitoring
 @contextmanager
 def timer(description):
     start_time = time.time()
@@ -35,7 +33,6 @@ def timer(description):
     elapsed_time = time.time() - start_time
     st.info(f"⏱️ {description}: {elapsed_time:.2f} seconds")
 
-# Cached embeddings
 @st.cache_resource
 def get_embeddings():
     return HuggingFaceEmbeddings(
@@ -48,7 +45,6 @@ def get_embeddings():
 
 embeddings = get_embeddings()
 
-# Text extraction functions
 @st.cache_data
 def extract_text_from_pdf(pdf_bytes):
     try:
@@ -84,7 +80,6 @@ def extract_text_from_csv(csv_bytes):
         return ""
 
 def process_uploaded_file(uploaded_file):
-    """Process a single uploaded file and return document"""
     file_bytes = uploaded_file.read()
     file_name = uploaded_file.name
     file_type = uploaded_file.type
@@ -111,7 +106,6 @@ def process_uploaded_file(uploaded_file):
     return None
 
 def optimized_chunking(documents):
-    """Split documents into optimized chunks"""
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=800,
         chunk_overlap=100,
@@ -121,21 +115,16 @@ def optimized_chunking(documents):
     return splitter.split_documents(documents)
 
 def create_qa_chain(vector_store):
-    """Create QA chain for both document and general questions"""
-    # Optimized LLM
-    llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    temperature=0,
-    api_key=GEMINI_API_KEY,
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-    # other params...
-)
+    llm = OllamaLLM(
+        model="llama3:instruct",  # Note: This model name might need to be changed
+        temperature=0.3,
+        num_ctx=2048,
+        num_predict=200,
+        num_thread=8
+    )
     
     retriever = vector_store.as_retriever(search_kwargs={"k": 3})
     
-    # Enhanced prompt that handles both document and general questions
     prompt_template = """You are an intelligent assistant that can answer questions in two modes:
 
 1. DOCUMENT MODE: When the context contains relevant information, use it to answer the question
@@ -168,7 +157,6 @@ Answer:"""
     return qa_chain
 
 def analyze_document(document, qa_chain):
-    """Analyze document and provide summary"""
     content_preview = document.page_content[:2000] if len(document.page_content) > 2000 else document.page_content
     
     analysis_query = f"""Analyze this document and provide:
@@ -182,13 +170,11 @@ Document content: {content_preview}"""
     result = qa_chain.invoke({"query": analysis_query})
     return result["result"]
 
-# Streamlit UI
 st.set_page_config(page_title="Document Chat Assistant", page_icon="📄", layout="wide")
 
 st.title("📄 Smart Document Chat Assistant")
 st.write("Upload a document for analysis and chat with it, or ask general questions!")
 
-# Sidebar for file upload and document info
 with st.sidebar:
     st.header("📤 Upload Document")
     uploaded_file = st.file_uploader(
@@ -215,7 +201,6 @@ with st.sidebar:
     - "Explain quantum physics" (general)
     """)
 
-# Main content area
 col1, col2 = st.columns([1, 1])
 
 with col1:
@@ -225,26 +210,21 @@ with col1:
         if st.button("🔍 Analyze Document", type="primary"):
             with st.spinner("Processing document..."):
                 with timer("Document Processing"):
-                    # Process the uploaded file
                     document = process_uploaded_file(uploaded_file)
                     
                     if document:
-                        # Create vector store from the document
                         chunks = optimized_chunking([document])
                         vector_store = FAISS.from_documents(chunks, embeddings)
                         
-                        # Store in session state for chat
                         st.session_state.vector_store = vector_store
                         st.session_state.qa_chain = create_qa_chain(vector_store)
                         st.session_state.document = document
                         
-                        # Analyze the document
                         analysis = analyze_document(document, st.session_state.qa_chain)
                         
                         st.subheader("📊 Document Analysis Results")
                         st.write(analysis)
                         
-                        # Show document preview
                         with st.expander("📄 Document Preview (First 500 characters)"):
                             st.text(document.page_content[:500] + "..." if len(document.page_content) > 500 else document.page_content)
                         
@@ -257,42 +237,33 @@ with col1:
 with col2:
     st.header("💬 Chat Assistant")
     
-    # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
     
-    # Display chat messages
     chat_container = st.container()
     with chat_container:
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
     
-    # Chat input
     if prompt := st.chat_input("Ask about your document or any general question..."):
-        # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
         
-        # Display user message
         with st.chat_message("user"):
             st.markdown(prompt)
         
-        # Generate response
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
                     if hasattr(st.session_state, 'qa_chain') and st.session_state.qa_chain:
-                        # Use document QA chain
                         with timer("Response Generation"):
                             result = st.session_state.qa_chain.invoke({"query": prompt})
                             response = result["result"]
                             
-                            # Show sources if available and relevant
                             sources = result.get("source_documents", [])
                             if sources and any(prompt.lower() in source.page_content.lower() for source in sources):
                                 response += f"\n\n📚 *Source: {st.session_state.document.metadata.get('source', 'Uploaded document')}*"
                     else:
-                        # No document uploaded, use general knowledge
                         response = """I don't have access to any document right now. To answer questions about specific documents, please upload a file first using the sidebar.
 
 However, I can help with general questions! Feel free to ask me about:
@@ -309,16 +280,13 @@ What would you like to know?"""
                     response = f"I encountered an error: {str(e)}. Please try rephrasing your question or upload a document first."
                     st.error(response)
         
-        # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-# Clear chat button
 if st.session_state.messages:
     if st.button("🗑️ Clear Chat History"):
         st.session_state.messages = []
         st.rerun()
 
-# Footer
 st.markdown("---")
 st.markdown("🤖 **Smart Document Chat Assistant** | Ask questions about your documents or general topics!")
 st.caption("💡 Tip: Upload a document first for document-specific questions, or ask general questions anytime!")
