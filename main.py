@@ -22,8 +22,8 @@ import torch
 # from langchain_google_genai import ChatGoogleGenerativeAI
 
 # GEMINI_API_KEY = os.getenv("gemini_api_key")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 load_dotenv()
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 FAISS_INDEX_DIR = "faiss_index"
 RESPONSE_TIMEOUT = 30
@@ -303,4 +303,5 @@ if st.session_state.messages:
 st.markdown("---")
 st.markdown("🤖 **Smart Document Chat Assistant** | Ask questions about your documents or general topics!")
 st.caption("💡 Tip: Upload a document first for document-specific questions, or ask general questions anytime!")
+
 
