@@ -249,6 +249,7 @@ with col1:
 
 with col2:
     st.header("💬 Chat Assistant")
+    st.write("Analyse the document first to chat!")
     
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -303,3 +304,4 @@ if st.session_state.messages:
 st.markdown("---")
 st.markdown("🤖 **Smart Document Chat Assistant** | Ask questions about your documents or general topics!")
 st.caption("💡 Tip: Upload a document first for document-specific questions, or ask general questions anytime!")
+
