@@ -17,10 +17,12 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 from langchain_ollama.llms import OllamaLLM
 from langchain.schema import Document as LangchainDocument
+from langchain_groq import ChatGroq
 import torch
 # from langchain_google_genai import ChatGoogleGenerativeAI
 
 # GEMINI_API_KEY = os.getenv("gemini_api_key")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 load_dotenv()
 
 FAISS_INDEX_DIR = "faiss_index"
@@ -115,12 +117,23 @@ def optimized_chunking(documents):
     return splitter.split_documents(documents)
 
 def create_qa_chain(vector_store):
-    llm = OllamaLLM(
-        model="llama3:instruct",  # Note: This model name might need to be changed
-        temperature=0.3,
-        num_ctx=2048,
-        num_predict=200,
-        num_thread=8
+    # llm = OllamaLLM(
+    #     model="llama3:instruct",  # Note: This model name might need to be changed
+    #     temperature=0.3,
+    #     num_ctx=2048,
+    #     num_predict=200,
+    #     num_thread=8
+    # )
+
+        llm = ChatGroq(
+        model="deepseek-r1-distill-llama-70b",
+        api_key=GROQ_API_KEY,
+        temperature=0,
+        max_tokens=None,
+        reasoning_format="parsed",
+        timeout=None,
+        max_retries=2,
+        # other params...
     )
     
     retriever = vector_store.as_retriever(search_kwargs={"k": 3})
@@ -290,3 +303,4 @@ if st.session_state.messages:
 st.markdown("---")
 st.markdown("🤖 **Smart Document Chat Assistant** | Ask questions about your documents or general topics!")
 st.caption("💡 Tip: Upload a document first for document-specific questions, or ask general questions anytime!")
+
