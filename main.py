@@ -23,7 +23,7 @@ from langchain_groq import ChatGroq
 # from langchain_google_genai import ChatGoogleGenerativeAI
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = "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"
 
 FAISS_INDEX_DIR = "faiss_index"
 RESPONSE_TIMEOUT = 30
@@ -304,4 +304,5 @@ if st.session_state.messages:
 st.markdown("---")
 st.markdown("🤖 **Smart Document Chat Assistant** | Ask questions about your documents or general topics!")
 st.caption("💡 Tip: Upload a document first for document-specific questions, or ask general questions anytime!")
+
 
