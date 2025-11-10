@@ -3,10 +3,11 @@ python-dotenv==1.0.0
 python-docx==0.8.11  
 pypdf==3.13.0  
 pandas==2.0.3  
-torch==2.1.0  
+torch>=2.6.0,<2.7.0
 langchain-core==0.3.4  
 langchain-community==0.3.4  
 langchain-huggingface==0.3.4  
 langchain-ollama==1.0.0  
 langchain-groq==0.1.0  
 faiss-cpu==1.7.4  
+
