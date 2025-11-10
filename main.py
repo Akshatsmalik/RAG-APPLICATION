@@ -14,7 +14,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
+from langchain.chains import create_retrieval_chain
 from langchain_ollama.llms import OllamaLLM
 from langchain.schema import Document as LangchainDocument
 import torch
@@ -304,6 +304,7 @@ if st.session_state.messages:
 st.markdown("---")
 st.markdown("🤖 **Smart Document Chat Assistant** | Ask questions about your documents or general topics!")
 st.caption("💡 Tip: Upload a document first for document-specific questions, or ask general questions anytime!")
+
 
 
 
