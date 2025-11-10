@@ -306,3 +306,4 @@ st.markdown("🤖 **Smart Document Chat Assistant** | Ask questions about your d
 st.caption("💡 Tip: Upload a document first for document-specific questions, or ask general questions anytime!")
 
 
+
