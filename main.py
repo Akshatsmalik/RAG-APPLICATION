@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from docx import Document
 import pypdf
 import pandas as pd
+import langchain
 from langchain_community.document_loaders import Docx2txtLoader, TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -304,6 +305,7 @@ if st.session_state.messages:
 st.markdown("---")
 st.markdown("🤖 **Smart Document Chat Assistant** | Ask questions about your documents or general topics!")
 st.caption("💡 Tip: Upload a document first for document-specific questions, or ask general questions anytime!")
+
 
 
 
