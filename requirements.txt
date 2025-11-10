@@ -4,11 +4,13 @@ python-docx
 pypdf
 pandas
 torch
+langchain
 langchain-core
 langchain-community
 langchain-huggingface
 langchain-ollama
 langchain-groq
 faiss-cpu
+
 
 
